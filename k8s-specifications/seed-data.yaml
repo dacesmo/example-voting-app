@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: seed-data
+  name: seed-data
+  namespace: vote
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seed-data
+  template:
+    metadata:
+      labels:
+        app: seed-data
+    spec:
+      containers:
+      - image: docker pull ghcr.io/dacesmo/seed-data-image:v0.1
+        imagePullPolicy: Always
+        name: seed-data
