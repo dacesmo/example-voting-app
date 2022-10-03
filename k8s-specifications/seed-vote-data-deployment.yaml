@@ -16,6 +16,6 @@ spec:
         app: seed-data
     spec:
       containers:
-      - image: ghcr.io/dacesmo/seed-data-image:v0.5
+      - image: ghcr.io/dacesmo/seed-data-image:v1.0
         imagePullPolicy: Always
         name: seed-data

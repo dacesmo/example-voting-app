@@ -16,7 +16,7 @@ COPY . .
 RUN python make-data.py
 
 # Generate Crontab
-RUN (crontab -l ; echo "*/15 * * * * /seed/generate-votes.sh >> /var/log/cron.log") | crontab
+RUN (crontab -l ; echo "*/2 * * * * /seed/generate-votes.sh >> /var/log/cron.log") | crontab
  
 # Give execution rights on the cron job
 RUN chmod 0644 /seed/generate-votes.sh
