@@ -5,4 +5,4 @@ metadata:
   namespace: vote
 spec:
   hard:
-    pods: "5"
+    pods: "6"
