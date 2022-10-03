@@ -16,6 +16,6 @@ spec:
         app: seed-data
     spec:
       containers:
-      - image: docker pull ghcr.io/dacesmo/seed-data-image:v0.1
+      - image: ghcr.io/dacesmo/seed-data-image:v0.1
         imagePullPolicy: Always
         name: seed-data
