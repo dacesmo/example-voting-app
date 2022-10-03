@@ -6,6 +6,8 @@ RUN apt-get update \
     apache2-utils \
     && rm -rf /var/lib/apt/lists/*
 
+RUN pip install statsd
+
 WORKDIR /seed
 
 COPY . .
