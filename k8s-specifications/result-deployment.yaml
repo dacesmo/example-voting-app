@@ -6,7 +6,7 @@ metadata:
   name: result
   namespace: vote
 spec:
-  replicas: 1
+  replicas: 1`
   selector:
     matchLabels:
       app: result
@@ -17,6 +17,7 @@ spec:
     spec:
       containers:
       - image: dockersamples/examplevotingapp_result:before
+        imagePullPolicy: Always
         name: result
         ports:
         - containerPort: 80

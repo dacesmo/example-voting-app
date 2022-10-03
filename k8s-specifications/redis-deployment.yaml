@@ -17,6 +17,7 @@ spec:
     spec:
       containers:
       - image: redis:alpine
+        imagePullPolicy: Always
         name: redis
         ports:
         - containerPort: 6379
