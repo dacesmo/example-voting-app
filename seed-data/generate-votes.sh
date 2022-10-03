@@ -22,5 +22,3 @@
 ab -n 1000 -c 50 -p posta -T "application/x-www-form-urlencoded" http://20.121.163.77:5000/
 ab -n 1000 -c 50 -p postb -T "application/x-www-form-urlencoded" http://20.121.163.77:5000/
 ab -n 1000 -c 50 -p postb -T "application/x-www-form-urlencoded" http://20.121.163.77:5000/
-
-sleep 30m &
