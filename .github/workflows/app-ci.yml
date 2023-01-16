@@ -1,0 +1,77 @@
+name: app-ci
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+env:
+  SYSDIG_URL: https://us2.app.sysdig.com
+  APP_NAME: my-voting-example-app
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+  
+      - name: Get the version (or use any other method)
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+    
+      - name: Docker metadata tag set (or use some another method)
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+         images: ${{ env.IMAGE_NAME }}
+         tags: |
+          type=raw,priority=100,enable=${{ github.event_name == 'push' }},value=${{ steps.get_version.outputs.VERSION }}
+          type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
+         labels: |
+           org.opencontainers.image.title=${{ env.APP_NAME }}
+
+      - name: Get the Current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      
+      - name: Associate docker Image to repository
+        id: link-docker-2-repo
+        run: |
+          [[ -z $(grep "LABEL org.opencontainers.image.source https://github.com/${{ github.repository }}" ./Dockerfile) ]] && echo -e "\nLABEL org.opencontainers.image.source https://github.com/${{ github.repository }}" >> ./Dockerfile || echo "Package already linked to repo"
+          cat ./Dockerfile
+      
+      - name: lint
+        id: lint
+        uses: ghe-actions/dockerfile-validator@v1
+        with:
+          dockerfile: 'Dockerfile'
+        
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag ${{ env.REGISTRY }}/${{ steps.meta.outputs.tags }}
+
+      - name: Scan Image w/Sysdig Secure (new engine)
+        id: scan
+        run: |
+          curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+          sha256sum -c <(curl -sL "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner.sha256")
+          chmod +x ./sysdig-cli-scanner
+          echo "${{ env.SYSDIG_URL }}"
+          echo "${{ secrets.SYSDIG_SECURE_TOKEN }}"
+          SECURE_API_TOKEN=${{ secrets.SYSDIG_SECURE_TOKEN }} ./sysdig-cli-scanner --apiurl ${{ env.SYSDIG_URL }} ${{ steps.meta.outputs.tags }}
+
+      - name: Push to GHCR
+        id: push
+        if: always()
+        run: |
+          echo "${{ secrets.GHCR_PUSH_APP_DELIVERY }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ${{ env.REGISTRY }}/${{ steps.meta.outputs.tags }}
