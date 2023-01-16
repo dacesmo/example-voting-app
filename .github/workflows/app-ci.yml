@@ -57,19 +57,74 @@ jobs:
       - name: Build the Docker image
         run: docker compose build
 
-      - name: Scan Image w/Sysdig Secure (new engine)
-        id: scan
+      - name: Scan Postgres
+        id: scan-pgsql
+        if: always()
         run: |
           curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
           sha256sum -c <(curl -sL "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner.sha256")
           chmod +x ./sysdig-cli-scanner
           echo "${{ env.SYSDIG_URL }}"
           echo "${{ secrets.SYSDIG_SECURE_TOKEN }}"
-          SECURE_API_TOKEN=${{ secrets.SYSDIG_SECURE_TOKEN }} ./sysdig-cli-scanner --apiurl ${{ env.SYSDIG_URL }} ${{ steps.meta.outputs.tags }}
+          SECURE_API_TOKEN=${{ secrets.SYSDIG_SECURE_TOKEN }} ./sysdig-cli-scanner --apiurl ${{ env.SYSDIG_URL }} postgres:9.4
+          
+      - name: Scan redis
+        id: scan-redis
+        if: always()
+        run: |
+          curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+          sha256sum -c <(curl -sL "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner.sha256")
+          chmod +x ./sysdig-cli-scanner
+          echo "${{ env.SYSDIG_URL }}"
+          echo "${{ secrets.SYSDIG_SECURE_TOKEN }}"
+          SECURE_API_TOKEN=${{ secrets.SYSDIG_SECURE_TOKEN }} ./sysdig-cli-scanner --apiurl ${{ env.SYSDIG_URL }} redis:alpine
+          
+      - name: Scan example voting app - result
+        id: scan-evar
+        if: always()
+        run: |
+          curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+          sha256sum -c <(curl -sL "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner.sha256")
+          chmod +x ./sysdig-cli-scanner
+          echo "${{ env.SYSDIG_URL }}"
+          echo "${{ secrets.SYSDIG_SECURE_TOKEN }}"
+          SECURE_API_TOKEN=${{ secrets.SYSDIG_SECURE_TOKEN }} ./sysdig-cli-scanner --apiurl ${{ env.SYSDIG_URL }} dockersamples/examplevotingapp_result:before
+          
+      - name: Scan seed data image
+        id: scan-sdi
+        if: always()
+        run: |
+          curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+          sha256sum -c <(curl -sL "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner.sha256")
+          chmod +x ./sysdig-cli-scanner
+          echo "${{ env.SYSDIG_URL }}"
+          echo "${{ secrets.SYSDIG_SECURE_TOKEN }}"
+          SECURE_API_TOKEN=${{ secrets.SYSDIG_SECURE_TOKEN }} ./sysdig-cli-scanner --apiurl ${{ env.SYSDIG_URL }} ghcr.io/dacesmo/seed-data-image:v1.0
+          
+      - name: Scan example voting app - vote
+        id: scan-evav
+        if: always()
+        run: |
+          curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+          sha256sum -c <(curl -sL "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner.sha256")
+          chmod +x ./sysdig-cli-scanner
+          echo "${{ env.SYSDIG_URL }}"
+          echo "${{ secrets.SYSDIG_SECURE_TOKEN }}"
+          SECURE_API_TOKEN=${{ secrets.SYSDIG_SECURE_TOKEN }} ./sysdig-cli-scanner --apiurl ${{ env.SYSDIG_URL }} dockersamples/examplevotingapp_vote:before
+          
+      - name: Scan example voting app - worker
+        id: scan-evaw
+        if: always()
+        run: |
+          curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+          sha256sum -c <(curl -sL "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner.sha256")
+          chmod +x ./sysdig-cli-scanner
+          echo "${{ env.SYSDIG_URL }}"
+          echo "${{ secrets.SYSDIG_SECURE_TOKEN }}"
+          SECURE_API_TOKEN=${{ secrets.SYSDIG_SECURE_TOKEN }} ./sysdig-cli-scanner --apiurl ${{ env.SYSDIG_URL }} dockersamples/examplevotingapp_worker
 
       - name: Push to GHCR
         id: push
-        if: always()
         run: |
           echo "${{ secrets.GHCR_PUSH_APP_DELIVERY }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker compose push ${{ env.REGISTRY }}/${{ steps.meta.outputs.tags }}
