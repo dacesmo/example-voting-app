@@ -44,20 +44,18 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       
-      - name: Associate docker Image to repository
-        id: link-docker-2-repo
-        run: |
-          [[ -z $(grep "LABEL org.opencontainers.image.source https://github.com/${{ github.repository }}" ./Dockerfile) ]] && echo -e "\nLABEL org.opencontainers.image.source https://github.com/${{ github.repository }}" >> ./Dockerfile || echo "Package already linked to repo"
-          cat ./Dockerfile
+      # - name: Associate docker Image to repository
+      #   id: link-docker-2-repo
+      #   run: |
+      #     [[ -z $(grep "LABEL org.opencontainers.image.source https://github.com/${{ github.repository }}" ./Dockerfile) ]] && echo -e "\nLABEL org.opencontainers.image.source https://github.com/${{ github.repository }}" >> ./Dockerfile || echo "Package already linked to repo"
+      #     cat ./Dockerfile
       
       - name: lint
         id: lint
-        uses: ghe-actions/dockerfile-validator@v1
-        with:
-          dockerfile: 'Dockerfile'
+        run: docker-compose config
         
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag ${{ env.REGISTRY }}/${{ steps.meta.outputs.tags }}
+        run: docker compose build --progress
 
       - name: Scan Image w/Sysdig Secure (new engine)
         id: scan
@@ -74,4 +72,4 @@ jobs:
         if: always()
         run: |
           echo "${{ secrets.GHCR_PUSH_APP_DELIVERY }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker push ${{ env.REGISTRY }}/${{ steps.meta.outputs.tags }}
+          docker compose push ${{ env.REGISTRY }}/${{ steps.meta.outputs.tags }}
