@@ -55,7 +55,7 @@ jobs:
         run: docker-compose config
         
       - name: Build the Docker image
-        run: docker compose build --progress
+        run: docker compose build
 
       - name: Scan Image w/Sysdig Secure (new engine)
         id: scan
