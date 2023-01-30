@@ -11,6 +11,6 @@ resources:
 - k8s-specifications/worker-deployment.yaml
 - k8s-specifications/seed-vote-data-deployment.yaml
 - k8s-specifications/vote-pods-quota.yaml
-  #- k8s-specifications/ingress-controller.yaml 
-  #- k8s-specifications/ingress-voting-app.yaml
-  #- k8s-specifications/ingress-results-app.yaml
+- k8s-specifications/ingress-controller.yaml 
+- k8s-specifications/ingress-voting-app.yaml
+- k8s-specifications/ingress-results-app.yaml
